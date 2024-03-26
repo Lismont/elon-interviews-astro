@@ -1,0 +1,16 @@
+---
+// Props passed to the component
+const { component } = Astro.props;
+---
+
+<div style="background-color: red;">
+  {
+    component.richtext &&
+      component.richtext.map((richTextItem) => (
+        <Fragment>
+          {richTextItem.children &&
+            richTextItem.children.map((child) => <p>{child.text}</p>)}
+        </Fragment>
+      ))
+  }
+</div>

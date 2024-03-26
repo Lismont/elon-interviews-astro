@@ -1,0 +1,11 @@
+---
+// Props passed to the component
+const { component } = Astro.props;
+---
+
+<div>
+  {component.image && <img src={component.image} alt={component.title} />}
+  <h2>{component.title}</h2>
+  <p>{component.date}</p>
+  <p>{component.introduction}</p>
+</div>

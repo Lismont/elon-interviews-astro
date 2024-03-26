@@ -1,0 +1,16 @@
+---
+// Import the PostGridItem component
+import PostGridItem from "./PostGridItem.astro";
+
+// Props passed to the component
+const { gridItems } = Astro.props;
+
+// Sort gridItems by date, newest first
+const sortedGridItems = gridItems.sort(
+  (a, b) => new Date(b.date) - new Date(a.date)
+);
+---
+
+<div class="grid grid-cols-3 gap-4">
+  {sortedGridItems.map((item) => <PostGridItem component={item} />)}
+</div>

@@ -1,0 +1,76 @@
+---
+import Grid from "../components/Grid.astro"; // Import the Grid component
+import Text from "../components/Text.astro";
+
+const fetchGlobalMeta = async () => {
+  const response = await fetch(
+    "https://payload-nrx5.onrender.com/api/globals/meta"
+  );
+  const data = await response.json();
+  return data.previewImage.url;
+};
+
+const previewImageUrl = await fetchGlobalMeta();
+
+const fetchInterviews = async () => {
+  const response = await fetch(
+    "https://payload-nrx5.onrender.com/api/interviews"
+  );
+  const data = await response.json();
+  return data.docs.map(
+    ({ interviewTitle, interviewDate, url, Introduction }) => ({
+      date: interviewDate,
+      title: interviewTitle,
+      image: url,
+      introduction: Introduction, // Corrected to match the API response
+    })
+  );
+};
+
+const fetchData = async (slug: string) => {
+  console.log(`Fetching data for slug: ${slug}`); // Log the slug being used
+  const response = await fetch(`https://payload-nrx5.onrender.com/api/pages`);
+  const data = await response.json();
+  const page = data.docs.find((doc: any) => doc.slug === slug);
+  if (!page) {
+    throw new Error(`Page with slug '${slug}' not found`);
+  }
+  let pageComponents = page.components.map(async (comp: any) => {
+    if (comp.blockType === "grid") {
+      const interviews = await fetchInterviews();
+      return interviews.map((interview: any) => ({
+        ...interview,
+        type: "grid",
+      }));
+    } else if (comp.blockType === "textfield") {
+      return { richtext: comp.richText, type: "text" };
+    }
+  });
+  const components = await Promise.all(pageComponents);
+  return {
+    pageMeta: {
+      // title: page.pageTitle, // Uncomment and adjust according to actual data structure if needed
+      // description: "Page description here", // Adjust as needed
+    },
+    components: components.flat(),
+  };
+};
+
+const { slug } = Astro.props;
+console.log(`Starting fetchData for slug: ${slug}`);
+const { pageMeta, components } = await fetchData(slug);
+const gridItems = components.filter((component) => component.type === "grid");
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <body class="dark:bg-[#1f2023] fade-in">
+    <!-- <Navbar /> -->
+    <h1>{slug}</h1>
+
+    <!-- Pass gridItems to the Grid component -->
+    <Grid gridItems={gridItems} />
+
+    <!-- <Footer /> -->
+  </body>
+</html>
