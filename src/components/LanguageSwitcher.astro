@@ -1,0 +1,57 @@
+---
+interface Props {
+  activeLanguage: string;
+  contentType: string;
+  id: string;
+}
+
+const { activeLanguage, contentType, id } = Astro.props;
+const languages = ["en", "de", "fr"];
+
+const getPageSlug = async (lang: string, id: string) => {
+  const response = await fetch(
+    `https://payload-nrx5.onrender.com/api/pages?locale=${lang}&fallback-locale=none`
+  );
+  const data = await response.json();
+  const page = data.docs.find((doc: any) => doc.id === id);
+  return page ? page.slug : "";
+};
+
+const getInterviewSlug = async (lang: string, id: string) => {
+  const response = await fetch(
+    `https://payload-nrx5.onrender.com/api/interviews?locale=${lang}&fallback-locale=none`
+  );
+  const data = await response.json();
+  const interview = data.docs.find(
+    (doc: any) => doc.id === id && doc.languageVersionPublished
+  );
+  return interview ? interview.interviewSlug : "";
+};
+---
+
+<div class="flex gap-4">
+  {
+    languages.map(async (language: string) => {
+      let href = `/${language}`;
+      if (contentType === "page") {
+        const slug = await getPageSlug(language, id);
+        if (slug) {
+          href = `/${language}/${slug}`;
+        }
+      } else if (contentType === "blogPost") {
+        const slug = await getInterviewSlug(language, id);
+        if (slug) {
+          href = `/${language}/${slug}`;
+        }
+      }
+      return (
+        <a
+          href={href}
+          class={`text-gray-800 font-bold ${activeLanguage === language ? "underline" : ""} hover:underline`}
+        >
+          {language.toUpperCase()}
+        </a>
+      );
+    })
+  }
+</div>

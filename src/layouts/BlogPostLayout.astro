@@ -1,0 +1,54 @@
+---
+const { slug, lang } = Astro.params;
+
+import BasicLayout from "../layouts/BasicLayout.astro";
+
+// Function to fetch the interview data based on the slug and language
+//@ts-ignore
+async function fetchInterviewData(slug, lang) {
+  console.log(
+    "requesting",
+    `https://payload-nrx5.onrender.com/api/interviews?locale=${lang}&fallback-locale=none`
+  );
+  const response = await fetch(
+    `https://payload-nrx5.onrender.com/api/interviews?locale=${lang}&fallback-locale=none`
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to fetch interview data: ${response.statusText}`);
+  }
+  const data = await response.json();
+  const interview = data.docs.find(
+    (doc: { interviewSlug: string; languageVersionPublished: boolean }) =>
+      doc.interviewSlug === slug && doc.languageVersionPublished
+  );
+  return interview ? interview : null;
+}
+
+const post = await fetchInterviewData(slug, lang);
+---
+
+{
+  post ? (
+    <BasicLayout lang={lang} contentType="blogPost" id={post.id}>
+      <article>
+        <h1>{post.interviewTitle}</h1>
+        {post.url && (
+          <img src={post.url} alt={`Image for ${post.interviewTitle}`} />
+        )}
+        <div>
+          {post.content &&
+            post.content.root &&
+            post.content.root.children.map(
+              (paragraph: { children: { text: string }[] }) => (
+                <p>
+                  {paragraph.children.map((sentence) => sentence.text).join("")}
+                </p>
+              )
+            )}
+        </div>
+      </article>
+    </BasicLayout>
+  ) : (
+    <script define:vars={{ lang }}>window.location.href = `/${lang}`;</script>
+  )
+}

@@ -1,10 +1,11 @@
 ---
 import Grid from "../components/Grid.astro"; // Import the Grid component
-import Text from "../components/Text.astro";
+
+import BasicLayout from "../layouts/BasicLayout.astro";
 
 const fetchGlobalMeta = async () => {
   const response = await fetch(
-    "https://payload-nrx5.onrender.com/api/globals/meta"
+    "https://payload-nrx5.onrender.com/api/globals/siteinfos"
   );
   const data = await response.json();
   return data.previewImage.url;
@@ -14,22 +15,54 @@ const previewImageUrl = await fetchGlobalMeta();
 
 const fetchInterviews = async () => {
   const response = await fetch(
-    "https://payload-nrx5.onrender.com/api/interviews"
+    `https://payload-nrx5.onrender.com/api/interviews?locale=${lang}&fallback-locale=none`
   );
   const data = await response.json();
-  return data.docs.map(
-    ({ interviewTitle, interviewDate, url, Introduction }) => ({
-      date: interviewDate,
-      title: interviewTitle,
-      image: url,
-      introduction: Introduction, // Corrected to match the API response
-    })
-  );
+  return data.docs
+    .filter(
+      (doc: { languageVersionPublished: boolean }) =>
+        doc.languageVersionPublished
+    )
+    .map(
+      ({
+        interviewTitle,
+        interviewDate,
+        url,
+        Introduction,
+        interviewSlug,
+        content,
+      }: {
+        interviewTitle: string;
+        interviewDate: string;
+        url: string;
+        Introduction: string;
+        interviewSlug: string;
+        content: any;
+      }) => ({
+        date: interviewDate,
+        title: interviewTitle,
+        image: url,
+        introduction: Introduction,
+        slug: interviewSlug,
+        content: content,
+      })
+    )
+    .filter(
+      (item: {
+        title: string;
+        date: string;
+        image: string;
+        introduction: string;
+        slug: string;
+      }) =>
+        item.title && item.date && item.image && item.introduction && item.slug
+    );
 };
 
 const fetchData = async (slug: string) => {
-  console.log(`Fetching data for slug: ${slug}`); // Log the slug being used
-  const response = await fetch(`https://payload-nrx5.onrender.com/api/pages`);
+  const response = await fetch(
+    `https://payload-nrx5.onrender.com/api/pages?locale=${lang}`
+  );
   const data = await response.json();
   const page = data.docs.find((doc: any) => doc.slug === slug);
   if (!page) {
@@ -49,28 +82,19 @@ const fetchData = async (slug: string) => {
   const components = await Promise.all(pageComponents);
   return {
     pageMeta: {
-      // title: page.pageTitle, // Uncomment and adjust according to actual data structure if needed
+      pageTitle: page.pageTitle, // Uncomment and adjust according to actual data structure if needed
       // description: "Page description here", // Adjust as needed
     },
+    id: page.id,
     components: components.flat(),
   };
 };
 
-const { slug } = Astro.props;
-console.log(`Starting fetchData for slug: ${slug}`);
-const { pageMeta, components } = await fetchData(slug);
+const { slug, lang } = Astro.props;
+const { pageMeta, components, id } = await fetchData(slug);
 const gridItems = components.filter((component) => component.type === "grid");
 ---
 
-<!doctype html>
-<html lang="en" class="dark">
-  <body class="dark:bg-[#1f2023] fade-in">
-    <!-- <Navbar /> -->
-    <h1>{slug}</h1>
-
-    <!-- Pass gridItems to the Grid component -->
-    <Grid gridItems={gridItems} />
-
-    <!-- <Footer /> -->
-  </body>
-</html>
+<BasicLayout lang={lang} contentType="page" id={id}>
+  <Grid gridItems={gridItems} lang={lang} />
+</BasicLayout>

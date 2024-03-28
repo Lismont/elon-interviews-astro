@@ -1,0 +1,59 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import BlogPostLayout from "../../layouts/BlogPostLayout.astro";
+let isInterview = false;
+
+export async function getStaticPaths() {
+  // Fetch the list of pages and interviews for all locales
+  const locales = ["en", "de", "fr"];
+
+  let paths: {
+    params: { lang: string; slug: string }; // Changed isInterview to string
+  }[] = [];
+
+  for (const locale of locales) {
+    // Fetch pages
+    const pagesResponse = await fetch(
+      `https://payload-nrx5.onrender.com/api/pages?locale=${locale}`
+    );
+    const pages = await pagesResponse.json();
+
+    // Fetch interviews
+    const interviewsResponse = await fetch(
+      `https://payload-nrx5.onrender.com/api/interviews?locale=${locale}`
+    );
+    const interviews = await interviewsResponse.json();
+
+    // Generate paths for each language and slug combination
+    const localePaths = pages.docs.map((doc: { slug: string }) => ({
+      params: { lang: locale, slug: doc.slug },
+      isInterview: false,
+    }));
+
+    // Generate paths for each language and interviewSlug combination
+    const interviewPaths = interviews.docs
+      .filter(
+        (doc: { languageVersionPublished: boolean }) =>
+          doc.languageVersionPublished
+      )
+      .map((doc: { interviewSlug: string }) => ({
+        params: { lang: locale, slug: doc.interviewSlug },
+        isInterview: true, // Converted boolean to string
+      }));
+
+    paths = paths.concat(localePaths, interviewPaths);
+  }
+
+  return paths;
+}
+
+const { lang, slug } = Astro.params;
+---
+
+{
+  (isInterview = true ? (
+    <BlogPostLayout slug={slug} lang={lang} />
+  ) : (
+    <PageLayout slug={slug} lang={lang} />
+  ))
+}

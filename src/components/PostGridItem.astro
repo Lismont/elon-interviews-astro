@@ -1,11 +1,47 @@
 ---
 // Props passed to the component
-const { component } = Astro.props;
+const { component, lang } = Astro.props;
+import { Picture } from "astro:assets";
+
+// Function to format date based on language
+function formatDate(date: string | number | Date, lang: string) {
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  switch (lang) {
+    case "en":
+      return new Date(date).toLocaleDateString("en-US" as string, options);
+    case "de":
+      return new Date(date).toLocaleDateString("de-DE" as string, options);
+    case "fr":
+      return new Date(date).toLocaleDateString("fr-FR" as string, options);
+    default:
+      return new Date(date).toLocaleDateString("en-US" as string, options);
+  }
+}
+
+const formattedDate = formatDate(component.date, lang);
 ---
 
 <div>
-  {component.image && <img src={component.image} alt={component.title} />}
-  <h2>{component.title}</h2>
-  <p>{component.date}</p>
-  <p>{component.introduction}</p>
+  {
+    component.image && (
+      <a href={`/${lang}/${component.slug}/`} data-astro-prefetch="hover">
+        <Picture
+          src={component.image}
+          formats={["avif", "webp"]}
+          alt={component.title}
+          width="800"
+          height="400"
+        />
+      </a>
+    )
+  }
+  <a href={`/${lang}/${component.slug}/`} data-astro-prefetch="hover">
+    <h2 class="text-lg font-bold">{component.title}</h2>
+  </a>
+  <p class="mt-2">{formattedDate}</p>
+  <p class="mt-2">{component.introduction}</p>
 </div>
