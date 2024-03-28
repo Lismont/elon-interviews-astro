@@ -6,6 +6,7 @@ import BasicLayout from "../layouts/BasicLayout.astro";
 // Function to fetch the interview data based on the slug and language
 //@ts-ignore
 async function fetchInterviewData(slug, lang) {
+  console.log("lang interview", lang);
   console.log(
     "requesting",
     `https://payload-nrx5.onrender.com/api/interviews?locale=${lang}&fallback-locale=none`

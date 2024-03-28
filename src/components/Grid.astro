@@ -3,18 +3,68 @@
 import PostGridItem from "./PostGridItem.astro";
 
 // Props passed to the component
-const { gridItems, lang } = Astro.props;
+const { lang } = Astro.props;
 
-const sortedGridItems = gridItems.sort(
-  (a: (typeof gridItems)[number], b: (typeof gridItems)[number]) =>
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-);
+const fetchInterviews = async () => {
+  const response = await fetch(
+    `https://payload-nrx5.onrender.com/api/interviews?locale=${lang}&fallback-locale=none`
+  );
+  const data = await response.json();
+  return (
+    data.docs
+      .filter(
+        (doc: { languageVersionPublished: boolean }) =>
+          doc.languageVersionPublished
+      )
+      .map(
+        ({
+          interviewTitle,
+          interviewDate,
+          url,
+          Introduction,
+          interviewSlug,
+          content,
+        }: {
+          interviewTitle: string;
+          interviewDate: string;
+          url: string;
+          Introduction: string;
+          interviewSlug: string;
+          content: any;
+        }) => ({
+          date: interviewDate,
+          title: interviewTitle,
+          image: url,
+          introduction: Introduction,
+          slug: interviewSlug,
+          content: content,
+        })
+      )
+      .filter(
+        (item: {
+          title: string;
+          date: string;
+          image: string;
+          introduction: string;
+          slug: string;
+        }) =>
+          item.title &&
+          item.date &&
+          item.image &&
+          item.introduction &&
+          item.slug
+      )
+      //@ts-ignore
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  );
+};
+
+const gridItems = await fetchInterviews();
 ---
 
 <div class="grid grid-cols-3 gap-4">
   {
-    sortedGridItems.map((item: (typeof gridItems)[number]) => (
-      <PostGridItem component={item} lang={lang} />
-    ))
+    //@ts-ignore
+    gridItems.map((item) => <PostGridItem component={item} lang={lang} />)
   }
 </div>
