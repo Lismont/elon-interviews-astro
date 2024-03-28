@@ -16,7 +16,14 @@ export async function getStaticPaths() {
     const pagesResponse = await fetch(
       `https://payload-nrx5.onrender.com/api/pages?locale=${locale}`
     );
-    const pages = await pagesResponse.json();
+    const pagesData = await pagesResponse.json();
+    const pages = {
+      ...pagesData,
+      docs: pagesData.docs.filter(
+        (doc: { languageVersionPublished: boolean }) =>
+          doc.languageVersionPublished
+      ),
+    };
 
     // Fetch interviews
     const interviewsResponse = await fetch(

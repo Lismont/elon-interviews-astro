@@ -13,7 +13,9 @@ const getPageSlug = async (lang: string, id: string) => {
     `https://payload-nrx5.onrender.com/api/pages?locale=${lang}&fallback-locale=none`
   );
   const data = await response.json();
-  const page = data.docs.find((doc: any) => doc.id === id);
+  const page = data.docs.find(
+    (doc: any) => doc.id === id && doc.languageVersionPublished
+  );
   return page ? page.slug : "";
 };
 

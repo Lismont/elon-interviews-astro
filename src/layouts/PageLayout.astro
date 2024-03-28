@@ -64,9 +64,11 @@ const fetchData = async (slug: string) => {
     `https://payload-nrx5.onrender.com/api/pages?locale=${lang}`
   );
   const data = await response.json();
-  const page = data.docs.find((doc: any) => doc.slug === slug);
+  const page = data.docs.find(
+    (doc: any) => doc.slug === slug && doc.languageVersionPublished
+  );
   if (!page) {
-    throw new Error(`Page with slug '${slug}' not found`);
+    throw new Error(`Page with slug '${slug}' not found or not published`);
   }
   let pageComponents = page.components.map(async (comp: any) => {
     if (comp.blockType === "grid") {
@@ -82,8 +84,7 @@ const fetchData = async (slug: string) => {
   const components = await Promise.all(pageComponents);
   return {
     pageMeta: {
-      pageTitle: page.pageTitle, // Uncomment and adjust according to actual data structure if needed
-      // description: "Page description here", // Adjust as needed
+      pageTitle: page.pageTitle,
     },
     id: page.id,
     components: components.flat(),
