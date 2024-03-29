@@ -78,6 +78,7 @@ export function getPageTypes(paths: Path[]): PageTypeResult[] {
 }
 
 const paths = await getStaticPaths(); // Fetch the paths
+//@ts-ignore
 const pageTypes = getPageTypes(paths); // Get the page types
 
 const currentPageType = pageTypes.find((page) => page.slug === slug);
