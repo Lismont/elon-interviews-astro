@@ -13,7 +13,7 @@ export async function getStaticPaths() {
   for (const locale of locales) {
     // Fetch pages
     const pagesResponse = await fetch(
-      `https://payload-nrx5.onrender.com/api/pages?locale=${locale}`
+      `https://payload-nrx5.onrender.com/api/pages?locale=${locale}&fallback-locale=none`
     );
     const pagesData = await pagesResponse.json();
     const pages = {
@@ -32,7 +32,7 @@ export async function getStaticPaths() {
     );
 
     const interviewsResponse = await fetch(
-      `https://payload-nrx5.onrender.com/api/interviews?locale=${locale}`
+      `https://payload-nrx5.onrender.com/api/interviews?locale=${locale}&fallback-locale=none`
     );
     const interviews = await interviewsResponse.json();
 
