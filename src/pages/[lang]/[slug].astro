@@ -1,7 +1,6 @@
 ---
 import PageLayout from "../../layouts/PageLayout.astro";
 import BlogPostLayout from "../../layouts/BlogPostLayout.astro";
-let isInterview = false;
 
 export async function getStaticPaths() {
   // Fetch the list of pages and interviews for all locales
@@ -45,9 +44,8 @@ export async function getStaticPaths() {
       )
       .map((doc: { interviewSlug: string }) => ({
         params: { lang: locale, slug: doc.interviewSlug },
-        isInterview: true, // Converted boolean to string
+        isInterview: true,
       }));
-
     paths = paths.concat(localePaths, interviewPaths);
   }
   console.log(paths);
@@ -55,6 +53,35 @@ export async function getStaticPaths() {
 }
 
 const { lang, slug } = Astro.params;
+
+type Path = {
+  params: { lang: string; slug: string };
+  isInterview: boolean;
+};
+
+// Define a type for the function's return value
+type PageTypeResult = {
+  slug: string;
+  isInterview: boolean;
+};
+
+/**
+ * Iterates over the paths and returns an array indicating whether each path is an interview.
+ * @param paths Array of path objects.
+ * @returns Array of objects with slug and isInterview properties.
+ */
+export function getPageTypes(paths: Path[]): PageTypeResult[] {
+  return paths.map((path) => ({
+    slug: path.params.slug,
+    isInterview: path.isInterview,
+  }));
+}
+
+const paths = await getStaticPaths(); // Fetch the paths
+const pageTypes = getPageTypes(paths); // Get the page types
+
+const currentPageType = pageTypes.find((page) => page.slug === slug);
+let isInterview = currentPageType ? currentPageType.isInterview : false;
 ---
 
 {
